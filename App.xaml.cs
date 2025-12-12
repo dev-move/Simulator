@@ -11,6 +11,7 @@ using Simulator.Views.Pages;
 using Simulator.Views.Windows;
 using Wpf.Ui;
 using Wpf.Ui.DependencyInjection;
+using Wpf.Ui.Appearance;
 
 namespace Simulator
 {
@@ -68,6 +69,10 @@ namespace Simulator
         private async void OnStartup(object sender, StartupEventArgs e)
         {
             await _host.StartAsync();
+
+            var themeService = Services.GetRequiredService<IThemeService>();
+            themeService.SetTheme(ApplicationTheme.Dark);
+
         }
 
         /// <summary>
@@ -76,7 +81,6 @@ namespace Simulator
         private async void OnExit(object sender, ExitEventArgs e)
         {
             await _host.StopAsync();
-
             _host.Dispose();
         }
 

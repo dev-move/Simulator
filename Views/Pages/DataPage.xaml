@@ -4,59 +4,162 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      xmlns:conv="clr-namespace:Simulator.Helpers"
       mc:Ignorable="d"
       Title="DrawPage">
 
-    <Grid Margin="10">
+    <Page.Resources>
+        <conv:IntEqualsConverter x:Key="IntEqualsConverter" />
+        <Style x:Key="CompactRadioButton" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+            <Setter Property="Margin" Value="2,0,2,0"/>
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="MinWidth" Value="0"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <ComboBox Width="70" SelectedItem="{Binding SelectedDrawCount, Mode=TwoWay}">
-                <sys:Int32>1</sys:Int32>
-                <sys:Int32>2</sys:Int32>
-                <sys:Int32>3</sys:Int32>
-                <sys:Int32>4</sys:Int32>
-                <sys:Int32>5</sys:Int32>
-            </ComboBox>
+        <Border Grid.Row="0"
+                Padding="16"
+                CornerRadius="8"
+                Background="#12FFFFFF">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <Button Margin="10,0,0,0"
-                    Width="100"
-                    Height="40"
-                    Command="{Binding DrawOneCommand}">
-                <TextBlock Text="{Binding SelectedDrawCount, StringFormat='{}{0}회 뽑기'}"/>
-            </Button>
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="상품 구매"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0"/>
+                    <ComboBox Width="220"
+                              ItemsSource="{Binding BuyChances}"
+                              SelectedItem="{Binding SelectedBuyChance, Mode=TwoWay}"
+                              DisplayMemberPath="Display"/>
+                    <Button Content="구매"
+                            Width="70"
+                            Height="30"
+                            Margin="8,0,0,0"
+                            Command="{Binding BuyCommand}"/>
+                </StackPanel>
 
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,12,0,0">
+                    <TextBlock Text="뽑기 설정"
+                               FontWeight="Bold"
+                               Margin="0,0,0,4"/>
 
-            <StackPanel Margin="20,0,0,0">
-                <TextBlock Text="{Binding TotalDraws, StringFormat=총 뽑기: {0}회}" />
-                <TextBlock Text="{Binding Tickets, StringFormat=티켓: {0}개}" />
-                <TextBlock Text="{Binding RemainingDraws, StringFormat=잔여 뽑기: {0}회}" />
-            </StackPanel>
-        </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="뽑기 횟수"
+                                   Margin="0,0,8,0"
+                                   VerticalAlignment="Center"/>
 
-        <StackPanel Grid.Row="1">
+                        <RadioButton Content="1회"
+                                     Style="{StaticResource CompactRadioButton}"
+                                     GroupName="DrawCount"
+                                     IsChecked="{Binding SelectedDrawCount,
+                                                Mode=TwoWay,
+                                                Converter={StaticResource IntEqualsConverter},
+                                                ConverterParameter=1}" />
+
+                        <RadioButton Content="2회"
+                                     Style="{StaticResource CompactRadioButton}"
+                                     GroupName="DrawCount"
+                                     IsChecked="{Binding SelectedDrawCount,
+                                                Mode=TwoWay,
+                                                Converter={StaticResource IntEqualsConverter},
+                                                ConverterParameter=2}" />
+
+                        <RadioButton Content="3회"
+                                     Style="{StaticResource CompactRadioButton}"
+                                     GroupName="DrawCount"
+                                     IsChecked="{Binding SelectedDrawCount,
+                                                Mode=TwoWay,
+                                                Converter={StaticResource IntEqualsConverter},
+                                                ConverterParameter=3}" />
+
+                        <RadioButton Content="4회"
+                                     Style="{StaticResource CompactRadioButton}"
+                                     GroupName="DrawCount"
+                                     IsChecked="{Binding SelectedDrawCount,
+                                                Mode=TwoWay,
+                                                Converter={StaticResource IntEqualsConverter},
+                                                ConverterParameter=4}" />
+
+                        <RadioButton Content="5회"
+                                     Style="{StaticResource CompactRadioButton}"
+                                     GroupName="DrawCount"
+                                     IsChecked="{Binding SelectedDrawCount,
+                                                Mode=TwoWay,
+                                                Converter={StaticResource IntEqualsConverter},
+                                                ConverterParameter=5}" />
+
+                        <Button Margin="8,0,0,0"
+                                Width="110"
+                                Height="32"
+                                Command="{Binding DrawOneCommand}">
+                            <TextBlock Text="{Binding SelectedDrawCount, StringFormat='{}{0}회 뽑기'}"/>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="통계"
+                               FontWeight="Bold"
+                               Margin="0,0,0,4"/>
+
+                    <TextBlock Text="{Binding TotalDraws,     StringFormat=총 뽑기: {0}회}" />
+                    <TextBlock Text="{Binding Tickets,        StringFormat=티켓: {0}개}" />
+                    <TextBlock Text="{Binding RemainingDraws, StringFormat=잔여 뽑기: {0}회}" />
+                    <TextBlock Text="{Binding SpentMoneyText, StringFormat=총 사용 금액: {0}}" />
+
+                    <Button Margin="0,10,0,0"
+                            Width="80"
+                            Height="30"
+                            HorizontalAlignment="Right"
+                            Command="{Binding ResetCommand}">
+                        <TextBlock Text="초기화"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="1" Margin="0,16,0,0">
             <TextBlock Text="마지막 결과"
                        FontWeight="Bold"
-                       Margin="0,0,0,5">
-            </TextBlock>
-
+                       Margin="0,0,0,4"/>
             <TextBlock Text="{Binding LastResultText}"
                        FontSize="16"
-                       Margin="0,0,0,10">
-            </TextBlock>
+                       Margin="0,0,0,12"/>
 
             <DataGrid ItemsSource="{Binding History}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
-                      Height="250" SelectionChanged="DataGrid_SelectionChanged">
+                      Height="320">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="50"/>
-                    <DataGridTextColumn Header="시간" Binding="{Binding Time}" Width="*"/>
-                    <DataGridTextColumn Header="아이템" Binding="{Binding Prize.Name}" Width="2*"/>
-                    <DataGridTextColumn Header="등급" Binding="{Binding Prize.Rarity}" Width="*"/>
+                    <DataGridTextColumn Header="#"
+                                        Binding="{Binding Index}"
+                                        Width="60"/>
+                    <DataGridTextColumn Header="시간"
+                                        Binding="{Binding DrawTime.Now}"
+                                        Width="*"/>
+                    <DataGridTextColumn Header="아이템"
+                                        Binding="{Binding Prize.Name}"
+                                        Width="2*"/>
+                    <DataGridTextColumn Header="등급"
+                                        Binding="{Binding Prize.Rarity}"
+                                        Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
         </StackPanel>
