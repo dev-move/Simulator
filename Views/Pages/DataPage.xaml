@@ -10,6 +10,8 @@
 
     <Page.Resources>
         <conv:IntEqualsConverter x:Key="IntEqualsConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
         <Style x:Key="CompactRadioButton" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
             <Setter Property="Margin" Value="2,0,2,0"/>
             <Setter Property="Padding" Value="4,0"/>
@@ -151,17 +153,144 @@
                     <DataGridTextColumn Header="#"
                                         Binding="{Binding Index}"
                                         Width="60"/>
+
                     <DataGridTextColumn Header="시간"
                                         Binding="{Binding DrawTime.Now}"
-                                        Width="*"/>
+                                        Width="200"/>
+
                     <DataGridTextColumn Header="아이템"
                                         Binding="{Binding Prize.Name}"
-                                        Width="2*"/>
+                                        Width="200"/>
+
                     <DataGridTextColumn Header="등급"
                                         Binding="{Binding Prize.Rarity}"
-                                        Width="*"/>
+                                        Width="150"/>
+
+                    <DataGridTemplateColumn Header="상태" Width="70">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="교환됨"
+                                           HorizontalAlignment="Center"
+                                           Visibility="{Binding TiketExchanged,
+                                                                Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="티켓">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="교환"
+                                        Padding="4,0"
+                                        Margin="4,0,0,0"
+                                        Command="{Binding DataContext.ExchangeTicketCommand,
+                                                          RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
+            <Border Margin="0,12,0,0"
+        Padding="10"
+        CornerRadius="8"
+        Background="#18FFFFFF"
+        BorderBrush="#40FFFFFF"
+        BorderThickness="1"
+        Visibility="{Binding IsDecisionLocked, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Orientation="Vertical"
+                    VerticalAlignment="Center"
+                    Margin="0,0,12,0">
+                        <TextBlock Text="이번 뽑기 결과를 선택해 주세요"
+                       FontWeight="Bold"
+                       FontSize="14"/>
+                        <TextBlock Text="· 마음에 드는 상품은 그대로 보유하시고,"
+                       FontSize="12"
+                       Opacity="0.8"/>
+                        <TextBlock Text="· 마음에 들지 않는 상품은 오른쪽 테이블에서 [교환] 버튼을 눌러 티켓으로 바꾸세요."
+                       FontSize="12"
+                       Opacity="0.8"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center">
+                        <Button Content="상품으로 받기"
+                    Padding="12,4"
+                    Margin="0,0,4,0"
+                    Command="{Binding AcceptItemsCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </StackPanel>
+
+        <Grid Grid.RowSpan="2"
+              Visibility="{Binding IsEffectVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+
+            <Grid x:Name="OrbContainer"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
+                <Grid.RenderTransform>
+                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                </Grid.RenderTransform>
+
+                <Ellipse Width="280"
+                         Height="280"
+                         Opacity="0.8"
+                         Fill="{Binding EffectBrush}">
+                    <Ellipse.Effect>
+                        <BlurEffect Radius="60" />
+                    </Ellipse.Effect>
+                </Ellipse>
+
+                <Ellipse Width="220"
+                         Height="220"
+                         Opacity="0.95"
+                         Fill="{Binding EffectBrush}">
+                    <Ellipse.Effect>
+                        <DropShadowEffect Color="White"
+                                          BlurRadius="40"
+                                          ShadowDepth="0"
+                                          Opacity="0.8" />
+                    </Ellipse.Effect>
+                </Ellipse>
+
+                <Ellipse Width="140"
+                         Height="80"
+                         VerticalAlignment="Top"
+                         Margin="0,35,0,0"
+                         Opacity="0.5">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush GradientOrigin="0.5,0.0">
+                            <GradientStop Color="#FFFFFFFF" Offset="0.0" />
+                            <GradientStop Color="#00FFFFFF" Offset="1.0" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+
+            <Grid.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                            <DoubleAnimation Storyboard.TargetName="OrbContainer"
+                                             Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                             From="0.95" To="1.05"
+                                             Duration="0:0:0.6" />
+                            <DoubleAnimation Storyboard.TargetName="OrbContainer"
+                                             Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                             From="0.95" To="1.05"
+                                             Duration="0:0:0.6" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Grid.Triggers>
+        </Grid>
     </Grid>
 </Page>

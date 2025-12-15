@@ -1,15 +1,24 @@
 ﻿using Simulator.Helpers;
 using Simulator.Models;
 using Simulator.Services;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Effects;
 using RelayCommand = Simulator.Helpers.RelayCommand;
 
 namespace Simulator.ViewModels.Pages
 {
     public class DrawViewModels : ViewModelBase
     {
+        #region FIELDS
+
         private readonly DrawService _drawService = new();
         private readonly UserState _userState = new()
         {
@@ -19,10 +28,22 @@ namespace Simulator.ViewModels.Pages
             SpentMoney = 0
         };
 
+        private DrawResult? _lastResult;
+        private BuyChance? _selectedBuyChance;
+        private int _selectedDrawCount = 1;
+
+        private bool _isEffectVisible;
+        private string _effectText = string.Empty;
+        private Brush _effectBrush = Brushes.Transparent;
+
+        private bool _isDecisionLocked;
+
+        #endregion
+
+        #region PROPERTIES
+
         public ObservableCollection<Prize> Pool { get; } = new();
         public ObservableCollection<DrawResult> History { get; } = new();
-
-        private DrawResult? _lastResult;
 
         public DrawResult? LastResult
         {
@@ -38,16 +59,15 @@ namespace Simulator.ViewModels.Pages
 
         public string LastResultText =>
             LastResult == null
-            ? "아직 뽑기 전입니다."
-            : $"{LastResult.Index}회차: {LastResult.Prize?.Name} x{LastResult.Prize?.Quantity} ({LastResult.Prize?.Rarity})";
+                ? "아직 뽑기 전입니다."
+                : $"{LastResult.Index}회차: {LastResult.Prize?.Name} x{LastResult.Prize?.Quantity} ({LastResult.Prize?.Rarity})"
+                  + (LastResult.TiketExchanged ? " - 교환됨" : "");
 
         public int TotalDraws => _userState.TotalDraws;
         public int Tickets => _userState.Tickets;
         public int RemainingDraws => _userState.RemainingDraws;
 
         public ObservableCollection<BuyChance> BuyChances { get; } = new();
-
-        private BuyChance? _selectedBuyChance;
 
         public BuyChance? SelectedBuyChance
         {
@@ -57,11 +77,49 @@ namespace Simulator.ViewModels.Pages
 
         public string SpentMoneyText => $"{_userState.SpentMoney:N0}원";
 
+        public int SelectedDrawCount
+        {
+            get => _selectedDrawCount;
+            set => SetProperty(ref _selectedDrawCount, value);
+        }
+
+        public bool IsEffectVisible
+        {
+            get => _isEffectVisible;
+            set => SetProperty(ref _isEffectVisible, value);
+        }
+
+        public string EffectText
+        {
+            get => _effectText;
+            set => SetProperty(ref _effectText, value);
+        }
+
+        public Brush EffectBrush
+        {
+            get => _effectBrush;
+            set => SetProperty(ref _effectBrush, value);
+        }
+
+        public bool IsDecisionLocked
+        {
+            get => _isDecisionLocked;
+            set => SetProperty(ref _isDecisionLocked, value);
+        }
+
+        #endregion
+
+        #region COMMANDS
 
         public ICommand DrawOneCommand { get; }
         public ICommand BuyCommand { get; }
-
         public ICommand ResetCommand { get; }
+        public ICommand ExchangeTicketCommand { get; }
+        public ICommand AcceptItemsCommand { get; }
+
+        #endregion
+
+        #region CONSTRUCTOR
 
         public DrawViewModels()
         {
@@ -81,10 +139,28 @@ namespace Simulator.ViewModels.Pages
             DrawOneCommand = new RelayCommand(_ => DrawOne());
             BuyCommand = new RelayCommand(_ => Buy());
             ResetCommand = new RelayCommand(_ => Reset());
+            ExchangeTicketCommand = new RelayCommand(param => ExchangeTicket(param as DrawResult));
+            AcceptItemsCommand = new RelayCommand(_ => AcceptItems());
         }
 
-        private void DrawOne()
+        #endregion
+
+        #region METHODS
+
+        private async void DrawOne()
         {
+            if (IsEffectVisible)
+                return;
+
+            if (IsDecisionLocked)
+            {
+                MessageBox.Show(
+                    "현재 뽑기 결과에서 상품 또는 티켓을 먼저 선택해 주세요.",
+                    "알림",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
 
             int desiredCount = SelectedDrawCount <= 0 ? 1 : SelectedDrawCount;
 
@@ -95,7 +171,6 @@ namespace Simulator.ViewModels.Pages
                     "알림",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
-
                 return;
             }
 
@@ -106,40 +181,54 @@ namespace Simulator.ViewModels.Pages
                     "알림",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
-
                 return;
-
             }
 
-          
+            var batchResults = new List<DrawResult>();
+
             for (int i = 0; i < desiredCount; i++)
             {
-                var reslult = _drawService.DrawOne(Pool, _userState);
-
-                History.Insert(0, reslult);
-                LastResult = reslult;
+                var result = _drawService.DrawOne(Pool, _userState);
+                batchResults.Add(result);
             }
+
+            var highestRarity = GetHighestRarity(batchResults);
+            SetEffectByRarity(highestRarity);
+
+            IsEffectVisible = true;
+
+            await Task.Delay(1500);
+
+            foreach (var result in batchResults)
+            {
+                History.Insert(0, result);
+                LastResult = result;
+            }
+
             OnPropertyChanged(nameof(TotalDraws));
             OnPropertyChanged(nameof(Tickets));
             OnPropertyChanged(nameof(RemainingDraws));
             OnPropertyChanged(nameof(LastResultText));
+
+            IsEffectVisible = false;
+
+            IsDecisionLocked = true;
         }
 
         private void Buy()
         {
-            if(SelectedBuyChance == null)
+            if (SelectedBuyChance == null)
             {
                 MessageBox.Show(
                     "구매할 상품을 선택해주세요",
                     "알림",
                     MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                    );
+                    MessageBoxImage.Information);
                 return;
             }
 
             _userState.RemainingDraws += SelectedBuyChance.DrawCount;
-            _userState.SpentMoney += _selectedBuyChance.Price;
+            _userState.SpentMoney += SelectedBuyChance.Price;
 
             OnPropertyChanged(nameof(RemainingDraws));
             OnPropertyChanged(nameof(SpentMoneyText));
@@ -150,8 +239,7 @@ namespace Simulator.ViewModels.Pages
                 $"총 사용 금액 : {SpentMoneyText}",
                 "구매 완료",
                 MessageBoxButton.OK,
-                MessageBoxImage.Information
-                );
+                MessageBoxImage.Information);
         }
 
         public void Reset()
@@ -164,19 +252,111 @@ namespace Simulator.ViewModels.Pages
             History.Clear();
             LastResult = null;
 
+            IsEffectVisible = false;
+            IsDecisionLocked = false;
+
             OnPropertyChanged(nameof(TotalDraws));
             OnPropertyChanged(nameof(Tickets));
             OnPropertyChanged(nameof(RemainingDraws));
             OnPropertyChanged(nameof(SpentMoneyText));
             OnPropertyChanged(nameof(LastResult));
+            OnPropertyChanged(nameof(LastResultText));
         }
 
-        private int _selectedDrawCount = 1;
-
-        public int SelectedDrawCount
+        private Rarity GetHighestRarity(IEnumerable<DrawResult> results)
         {
-            get => _selectedDrawCount;
-            set => SetProperty(ref _selectedDrawCount, value);
+            if (results.Any(r => r.Prize is { Rarity: Rarity.Legendary }))
+                return Rarity.Legendary;
+
+            if (results.Any(r => r.Prize is { Rarity: Rarity.Rare }))
+                return Rarity.Rare;
+
+            if (results.Any(r => r.Prize is { Rarity: Rarity.High }))
+                return Rarity.High;
+
+            return Rarity.Common;
         }
+
+        private void SetEffectByRarity(Rarity rarity)
+        {
+            switch (rarity)
+            {
+                case Rarity.Legendary:
+                    EffectBrush = Brushes.Gold;
+                    break;
+
+                case Rarity.Rare:
+                    EffectBrush = (Brush)new BrushConverter().ConvertFromString("#FF9B59FF");
+                    break;
+
+                case Rarity.High:
+                    EffectBrush = Brushes.LimeGreen;
+                    break;
+
+                case Rarity.Common:
+                default:
+                    EffectBrush = Brushes.DodgerBlue;
+                    break;
+            }
+        }
+
+        private void ExchangeTicket(DrawResult? result)
+        {
+            if (result == null || result.Prize == null)
+            {
+                MessageBox.Show(
+                    "교환할 물품이 없습니다",
+                    "알림",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            if (result.TiketExchanged)
+            {
+                MessageBox.Show(
+                    "이미 교환한 상품입니다.",
+                    "알림",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            int tickets = result.Prize.TiketValue;
+
+            if (tickets <= 0)
+            {
+                MessageBox.Show(
+                    "이 상품은 티켓으로 교환할 수 없습니다.",
+                    "알림",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            _userState.Tickets += tickets;
+            result.TiketExchanged = true;
+
+            IsDecisionLocked = false;
+
+            OnPropertyChanged(nameof(Tickets));
+            OnPropertyChanged(nameof(LastResultText));
+
+            MessageBox.Show(
+                $"{tickets}개의 티켓으로 교환했습니다.\n현재 티켓: {_userState.Tickets}개",
+                "교환 완료",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        private void AcceptItems()
+        {
+            if (!IsDecisionLocked)
+                return;
+
+            IsDecisionLocked = false;
+        }
+
+        #endregion
     }
 }
