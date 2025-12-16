@@ -202,7 +202,8 @@
         </Grid>
 
         <Grid Grid.RowSpan="2"
-              Visibility="{Binding IsEffectVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+              Visibility="{Binding IsEffectVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+              VerticalAlignment="Top" Margin="0,80,0,100">
             <Grid x:Name="OrbContainer"
                   HorizontalAlignment="Center"
                   VerticalAlignment="Center">
@@ -276,13 +277,13 @@
                     BorderBrush="#80FFFFFF"
                     BorderThickness="1.5"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
+                    VerticalAlignment="Top"
+                    Margin="0,80,0,40">
                 <StackPanel>
                     <TextBlock Text="보상 선택"
                                FontSize="18"
                                FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,12"/>
+                               HorizontalAlignment="Center"/>
 
                     <ItemsControl ItemsSource="{Binding CurrentBatch}">
                         <ItemsControl.ItemsPanel>
@@ -331,11 +332,6 @@
                                                    FontSize="14"
                                                    TextAlignment="Center"
                                                    Margin="0,0,0,4"/>
-                                        <TextBlock Text="{Binding Prize.Rarity}"
-                                                   FontSize="12"
-                                                   Opacity="0.8"
-                                                   TextAlignment="Center"
-                                                  Margin="0,0,0,4"/>
                                         <StackPanel Orientation="Horizontal"
                                                     HorizontalAlignment="Center"
                                                     Margin="0,8,0,0">
@@ -343,6 +339,7 @@
                                                     Padding="6,2"
                                                     Margin="0,0,4,0"
                                                     Width="100"
+                                                    Height="40"
                                                     Command="{Binding DataContext.SelectItemCommand,
                                                                       RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
                                                     CommandParameter="{Binding}">
@@ -361,13 +358,14 @@
                                                     </Style>
                                                 </Button.Style>
                                             </Button>
-                                            <Button Content="티켓"
+                                            <Button Content="{Binding Prize.TiketValue, StringFormat='티켓 {0}개'}"
                                                     Padding="6,2"
                                                     Margin="4,0,0,0"
                                                     Width="100"
                                                     Command="{Binding DataContext.SelectTicketCommand,
                                                                       RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-                                                    CommandParameter="{Binding}">
+                                                    CommandParameter="{Binding}"
+                                                    >
                                                 <Button.Style>
                                                     <Style TargetType="Button">
                                                         <Setter Property="Background" Value="#444A4F56"/>

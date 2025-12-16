@@ -50,7 +50,7 @@ namespace Simulator.Services
                 )!;
                 _navigationWindow!.ShowWindow();
 
-                _navigationWindow.Navigate(typeof(Views.Pages.DashboardPage));
+                _navigationWindow.Navigate(typeof(Views.Pages.DataPage));
             }
 
             await Task.CompletedTask;
