@@ -429,14 +429,14 @@ namespace Simulator.ViewModels.Pages
             OnPropertyChanged(nameof(Tickets));
             OnPropertyChanged(nameof(LastResultText));
 
-            if (totalTicketsAdded > 0)
-            {
-                MessageBox.Show(
-                    $"티켓 {totalTicketsAdded}개를 획득했습니다.\n현재 티켓: {_userState.Tickets}개",
-                    "보상 수령",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
+            //if (totalTicketsAdded > 0)
+            //{
+            //    MessageBox.Show(
+            //        $"티켓 {totalTicketsAdded}개를 획득했습니다.\n현재 티켓: {_userState.Tickets}개",
+            //        "보상 수령",
+            //        MessageBoxButton.OK,
+            //        MessageBoxImage.Information);
+            //}
         }
 
         private void ExchangeTicketFromHistory(DrawResult? result)
