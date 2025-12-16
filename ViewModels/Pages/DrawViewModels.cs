@@ -3,14 +3,11 @@ using Simulator.Models;
 using Simulator.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using RelayCommand = Simulator.Helpers.RelayCommand;
 
 namespace Simulator.ViewModels.Pages
@@ -45,6 +42,10 @@ namespace Simulator.ViewModels.Pages
         public ObservableCollection<Prize> Pool { get; } = new();
         public ObservableCollection<DrawResult> History { get; } = new();
 
+        public ObservableCollection<DrawResult> CurrentBatch { get; } = new();
+
+        public ObservableCollection<BuyChance> BuyChances { get; } = new();
+
         public DrawResult? LastResult
         {
             get => _lastResult;
@@ -66,8 +67,6 @@ namespace Simulator.ViewModels.Pages
         public int TotalDraws => _userState.TotalDraws;
         public int Tickets => _userState.Tickets;
         public int RemainingDraws => _userState.RemainingDraws;
-
-        public ObservableCollection<BuyChance> BuyChances { get; } = new();
 
         public BuyChance? SelectedBuyChance
         {
@@ -114,8 +113,14 @@ namespace Simulator.ViewModels.Pages
         public ICommand DrawOneCommand { get; }
         public ICommand BuyCommand { get; }
         public ICommand ResetCommand { get; }
+
+        public ICommand SelectItemCommand { get; }
+
+        public ICommand SelectTicketCommand { get; }
+
+        public ICommand ConfirmRewardsCommand { get; }
+
         public ICommand ExchangeTicketCommand { get; }
-        public ICommand AcceptItemsCommand { get; }
 
         #endregion
 
@@ -123,11 +128,72 @@ namespace Simulator.ViewModels.Pages
 
         public DrawViewModels()
         {
-            Pool.Add(new Prize { Name = "전설", Quantity = 1, TiketValue = 30 });
-            Pool.Add(new Prize { Name = "레어", Quantity = 1, TiketValue = 5 });
-            Pool.Add(new Prize { Name = "고급", Quantity = 1, TiketValue = 2 });
-            Pool.Add(new Prize { Name = "일반", Quantity = 1, TiketValue = 1 });
-
+            Pool.Add(new Prize { Name = "헤이즈 올인원 상자", Quantity = 1, TiketValue = 30, Probability = 0.0058 });
+            Pool.Add(new Prize { Name = "스페셜 시크릿 트렌치 세트 선택 상자", Quantity = 1, TiketValue = 30, Probability = 0.0367 });
+            Pool.Add(new Prize { Name = "여명의 날개 6종 선택 상자", Quantity = 1, TiketValue = 30, Probability = 0.0367 });
+            Pool.Add(new Prize { Name = "스페셜 래글런 세트 선택 상자", Quantity = 1, TiketValue = 30, Probability = 0.0390 });
+            Pool.Add(new Prize { Name = "스페셜 피오니 폭스 세트 선택 상자", Quantity = 1, TiketValue = 30, Probability = 0.0390 });
+            Pool.Add(new Prize { Name = "포장된 스페셜 바실리카 가드 세트", Quantity = 1, TiketValue = 30, Probability = 0.0469 });
+            Pool.Add(new Prize { Name = "스페셜 플러피 스웨터 세트 선택 상자", Quantity = 1, TiketValue = 30, Probability = 0.1580 });
+            Pool.Add(new Prize { Name = "포장된 스페셜 리치 매직 세트", Quantity = 1, TiketValue = 30, Probability = 0.1680 });
+            Pool.Add(new Prize { Name = "포장된 AP 10000 캡슐", Quantity = 1, TiketValue = 5, Probability = 0.1774});
+            Pool.Add(new Prize { Name = "포장된 리엘의 몸 윤기 팩", Quantity = 1, TiketValue = 5, Probability = 0.1784 });
+            Pool.Add(new Prize { Name = "홈 VVIP 서비스 패키지 (30일, 증정)", Quantity = 1, TiketValue = 5, Probability = 0.1784 });
+            Pool.Add(new Prize { Name = "추가 출정 부스트팩 (30일) (90레벨 이상)", Quantity = 1, TiketValue = 5, Probability = 0.1995 });
+            Pool.Add(new Prize { Name = "포장된 소지품함 확장권 (무제한)", Quantity = 1, TiketValue = 5, Probability = 0.2417 });
+            Pool.Add(new Prize { Name = "포장된 +13강 50% 퍼거스의 고정 강화석 (115레벨)\t", Quantity = 1, TiketValue = 5, Probability = 0.2482 });
+            Pool.Add(new Prize { Name = "포장된 리엘의 얼굴 윤기 팩", Quantity = 1, TiketValue = 5, Probability = 0.2830 });
+            Pool.Add(new Prize { Name = "포장된 AP 5000 캡슐", Quantity = 1, TiketValue = 5, Probability = 0.2830 });
+            Pool.Add(new Prize { Name = "포장된 기본 외모 변경권", Quantity = 1, TiketValue = 5, Probability = 0.2830});
+            Pool.Add(new Prize { Name = "홈 VVIP 서비스 패키지 (15일, 증정)", Quantity = 1, TiketValue = 5, Probability = 0.2942 });
+            Pool.Add(new Prize { Name = "프리미엄 무지개 아바타 염색 앰플 선택 상자", Quantity = 1, TiketValue = 5, Probability = 0.3318 });
+            Pool.Add(new Prize { Name = "이너아머 자유이용권(30일, 증정)", Quantity = 1, TiketValue = 2, Probability = 0.3527 });
+            Pool.Add(new Prize { Name = "프리미엄 무지개 염색 앰플 선택 상자", Quantity = 1, TiketValue = 2, Probability = 0.3527 });
+            Pool.Add(new Prize { Name = "홈 VVIP 서비스 패키지 (7일, 증정)", Quantity = 1, TiketValue = 2, Probability = 0.4112 });
+            Pool.Add(new Prize { Name = "이너아머 컬러 변경권 (증정)", Quantity = 1, TiketValue = 2, Probability = 0.4123 });
+            Pool.Add(new Prize { Name = "공유 보관함 이용권 (30일, 증정)", Quantity = 1, TiketValue = 2, Probability = 0.4498 });
+            Pool.Add(new Prize { Name = "포장된 프리미엄 무기 매혹의 룬 (증정)", Quantity = 1, TiketValue = 2, Probability = 0.5860 });
+            Pool.Add(new Prize { Name = "퍼펙트 스킬 언트레인 캡슐 (증정)", Quantity = 1, TiketValue = 2, Probability = 0.6600 });
+            Pool.Add(new Prize { Name = "헤어 컬러 변경권 (증정)", Quantity = 1, TiketValue = 2, Probability = 0.8185 });
+            Pool.Add(new Prize { Name = "포장된 한계 돌파의 에르그 결정 (60%)", Quantity = 1, TiketValue = 2, Probability = 0.8185 });
+            Pool.Add(new Prize { Name = "강화의 룬 (증정)", Quantity = 1, TiketValue = 2, Probability = 0.8185 });
+            Pool.Add(new Prize { Name = "무기 매혹의 룬 (증정)", Quantity = 1, TiketValue = 2, Probability = 0.9357 });
+            Pool.Add(new Prize { Name = "포장된 한계 돌파의 에르그 결정 (50%)", Quantity = 1, TiketValue = 2, Probability = 0.9357 });
+            Pool.Add(new Prize { Name = "프리미엄 매혹의 룬", Quantity = 1, TiketValue = 2, Probability = 0.9357 });
+            Pool.Add(new Prize { Name = "포장된 한계 돌파의 에르그 결정 (40%)", Quantity = 1, TiketValue = 2, Probability = 1.5891 });
+            Pool.Add(new Prize { Name = "포장된 아바타 초기 염색 앰플", Quantity = 1, TiketValue = 2, Probability = 1.8910 });
+            Pool.Add(new Prize { Name = "포장된 생도 배지 (30일)", Quantity = 1, TiketValue = 2, Probability = 1.8910 });
+            Pool.Add(new Prize { Name = "아바타 염색 앰플 (비어있음)", Quantity = 1, TiketValue = 2, Probability = 1.8910 });
+            Pool.Add(new Prize { Name = "인챈트 무기한 변경권 (증정)", Quantity = 1, TiketValue = 2, Probability = 1.8910 });
+            Pool.Add(new Prize { Name = "포장된 한계 돌파의 에르그 결정 (30%)", Quantity = 1, TiketValue = 2, Probability = 2.0784 });
+            Pool.Add(new Prize { Name = "포장된 최대 각성도 증가 포션", Quantity = 1, TiketValue = 2, Probability = 2.0784 });
+            Pool.Add(new Prize { Name = "케아라의 특별한 피로회복제(증정)", Quantity = 1, TiketValue = 2, Probability = 2.0784 });
+            Pool.Add(new Prize { Name = "포장된 프리미엄 스킬 각성의 룬", Quantity = 1, TiketValue = 2, Probability = 2.0784 });
+            Pool.Add(new Prize { Name = "매혹의 룬 (증정)", Quantity = 1, TiketValue = 1, Probability = 2.5759 });
+            Pool.Add(new Prize { Name = "서버 확성기 (증정)", Quantity = 1, TiketValue = 1, Probability = 2.5759 });
+            Pool.Add(new Prize { Name = "여신의 항해 축복석 (증정)", Quantity = 1, TiketValue = 1, Probability = 2.5759 });
+            Pool.Add(new Prize { Name = "귀속 해제 포션 (증정)", Quantity = 1, TiketValue = 1, Probability = 2.5759 });
+            Pool.Add(new Prize { Name = "포장된 한계 돌파의 에르그 결정 (20%)", Quantity = 1, TiketValue = 1, Probability = 2.5767 });
+            Pool.Add(new Prize { Name = "포장된 최대 내구도 증가 포션 (증정) 상자", Quantity = 1, TiketValue = 1, Probability = 2.8580 });
+            Pool.Add(new Prize { Name = "여신의 가호 (파티, 증정)", Quantity = 1, TiketValue = 1, Probability = 2.8580 });
+            Pool.Add(new Prize { Name = "경험치 항해 축복석 (증정)", Quantity = 1, TiketValue = 1, Probability = 2.8580 });
+            Pool.Add(new Prize { Name = "AP 항해 축복석 (증정)", Quantity = 1, TiketValue = 1, Probability = 2.8580 });
+            Pool.Add(new Prize { Name = "행운 항해 축복석 (증정)", Quantity = 1, TiketValue = 1, Probability = 2.8580 });
+            Pool.Add(new Prize { Name = "큐미의 회복 포션 (증정)", Quantity = 1, TiketValue = 1, Probability = 3.0855 });
+            Pool.Add(new Prize { Name = "스킬 언트레인 캡슐 (증정)", Quantity = 1, TiketValue = 1, Probability = 3.0855 });
+            Pool.Add(new Prize { Name = "큐미의 플러스 회복 포션 (증정)", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "AP 1000 캡슐 (ID 공유 가능)", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "포장된 스킬 각성의 룬", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "헤어 자유이용권(30일, 증정)", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "클로다의 염색 앰플 (비어있음)", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "포장된 한계 돌파의 에르그 결정 (10%)", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "큐미의 파티 회복 포션 (증정)", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "앰플 추출기 (증정)", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "여신의 가호 (증정)", Quantity = 1, TiketValue = 1, Probability = 3.0974 });
+            Pool.Add(new Prize { Name = "라비 호루라기 (1회)", Quantity = 1, TiketValue = 1, Probability = 3.1998 });
+            Pool.Add(new Prize { Name = "로센리엔의 날개 상자 (7일)", Quantity = 1, TiketValue = 1, Probability = 3.1998 });
+            Pool.Add(new Prize { Name = "포장된 고급 아로마 입욕제", Quantity = 1, TiketValue = 1, Probability = 3.1998 });
+   
             BuyChances.Add(new BuyChance { DrawCount = 1, Price = 1900 });
             BuyChances.Add(new BuyChance { DrawCount = 11, Price = 19000 });
             BuyChances.Add(new BuyChance { DrawCount = 28, Price = 47500 });
@@ -139,8 +205,10 @@ namespace Simulator.ViewModels.Pages
             DrawOneCommand = new RelayCommand(_ => DrawOne());
             BuyCommand = new RelayCommand(_ => Buy());
             ResetCommand = new RelayCommand(_ => Reset());
-            ExchangeTicketCommand = new RelayCommand(param => ExchangeTicket(param as DrawResult));
-            AcceptItemsCommand = new RelayCommand(_ => AcceptItems());
+            SelectItemCommand = new RelayCommand(p => SelectItem(p as DrawResult));
+            SelectTicketCommand = new RelayCommand(p => SelectTicket(p as DrawResult));
+            ConfirmRewardsCommand = new RelayCommand(_ => ConfirmRewards());
+            ExchangeTicketCommand = new RelayCommand(p => ExchangeTicketFromHistory(p as DrawResult));
         }
 
         #endregion
@@ -155,7 +223,7 @@ namespace Simulator.ViewModels.Pages
             if (IsDecisionLocked)
             {
                 MessageBox.Show(
-                    "현재 뽑기 결과에서 상품 또는 티켓을 먼저 선택해 주세요.",
+                    "현재 뽑기 결과에서 상품 또는 티켓을 먼저 선택하고 '받기'를 눌러 주세요.",
                     "알림",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
@@ -196,12 +264,18 @@ namespace Simulator.ViewModels.Pages
             SetEffectByRarity(highestRarity);
 
             IsEffectVisible = true;
-
             await Task.Delay(1500);
+
+            CurrentBatch.Clear();
 
             foreach (var result in batchResults)
             {
+                result.Selection = RewardSelection.None;
+                result.TiketExchanged = false;
+
                 History.Insert(0, result);
+                CurrentBatch.Add(result);
+
                 LastResult = result;
             }
 
@@ -211,7 +285,6 @@ namespace Simulator.ViewModels.Pages
             OnPropertyChanged(nameof(LastResultText));
 
             IsEffectVisible = false;
-
             IsDecisionLocked = true;
         }
 
@@ -250,6 +323,7 @@ namespace Simulator.ViewModels.Pages
             _userState.TotalDraws = 0;
 
             History.Clear();
+            CurrentBatch.Clear();
             LastResult = null;
 
             IsEffectVisible = false;
@@ -284,15 +358,12 @@ namespace Simulator.ViewModels.Pages
                 case Rarity.Legendary:
                     EffectBrush = Brushes.Gold;
                     break;
-
                 case Rarity.Rare:
                     EffectBrush = (Brush)new BrushConverter().ConvertFromString("#FF9B59FF");
                     break;
-
                 case Rarity.High:
                     EffectBrush = Brushes.LimeGreen;
                     break;
-
                 case Rarity.Common:
                 default:
                     EffectBrush = Brushes.DodgerBlue;
@@ -300,7 +371,75 @@ namespace Simulator.ViewModels.Pages
             }
         }
 
-        private void ExchangeTicket(DrawResult? result)
+        private void SelectItem(DrawResult? result)
+        {
+            if (result == null)
+                return;
+
+            result.Selection = RewardSelection.Item;
+        }
+
+        private void SelectTicket(DrawResult? result)
+        {
+            if (result == null)
+                return;
+
+            result.Selection = RewardSelection.Ticket;
+        }
+
+        private void ConfirmRewards()
+        {
+            if (!IsDecisionLocked)
+                return;
+
+            if (CurrentBatch.Count == 0)
+            {
+                IsDecisionLocked = false;
+                return;
+            }
+
+            if (CurrentBatch.Any(r => r.Selection == RewardSelection.None))
+            {
+                MessageBox.Show(
+                    "선택하지 않은 아이템이 있습니다.",
+                    "알림",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            int totalTicketsAdded = 0;
+
+            foreach (var result in CurrentBatch)
+            {
+                if (result.Selection == RewardSelection.Ticket && result.Prize != null)
+                {
+                    int tickets = result.Prize.TiketValue;
+                    if (tickets > 0)
+                    {
+                        _userState.Tickets += tickets;
+                        totalTicketsAdded += tickets;
+                        result.TiketExchanged = true;
+                    }
+                }
+            }
+
+            IsDecisionLocked = false;
+
+            OnPropertyChanged(nameof(Tickets));
+            OnPropertyChanged(nameof(LastResultText));
+
+            if (totalTicketsAdded > 0)
+            {
+                MessageBox.Show(
+                    $"티켓 {totalTicketsAdded}개를 획득했습니다.\n현재 티켓: {_userState.Tickets}개",
+                    "보상 수령",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+        }
+
+        private void ExchangeTicketFromHistory(DrawResult? result)
         {
             if (result == null || result.Prize == null)
             {
@@ -337,8 +476,6 @@ namespace Simulator.ViewModels.Pages
             _userState.Tickets += tickets;
             result.TiketExchanged = true;
 
-            IsDecisionLocked = false;
-
             OnPropertyChanged(nameof(Tickets));
             OnPropertyChanged(nameof(LastResultText));
 
@@ -347,14 +484,6 @@ namespace Simulator.ViewModels.Pages
                 "교환 완료",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
-        }
-
-        private void AcceptItems()
-        {
-            if (!IsDecisionLocked)
-                return;
-
-            IsDecisionLocked = false;
         }
 
         #endregion
