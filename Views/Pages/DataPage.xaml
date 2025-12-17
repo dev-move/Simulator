@@ -175,7 +175,7 @@
                                         Width="60"/>
 
                     <DataGridTextColumn Header="시간"
-                                        Binding="{Binding DrawTime, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                                        Binding="{Binding DrawTime.Now, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
                                         Width="*"/>
 
                     <DataGridTextColumn Header="아이템"
